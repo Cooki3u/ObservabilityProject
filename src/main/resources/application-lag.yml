@@ -1,0 +1,17 @@
+app:
+  simulation:
+    enabled: true
+    min-sleep-ms: 200
+    max-sleep-ms: 1200
+    spike-probability: 0.05
+    spike-sleep-ms: 15000
+
+spring:
+  kafka:
+    streams:
+      properties:
+        max.poll.records: 1000
+        max.poll.interval.ms: 10000
+        session.timeout.ms: 10000
+        heartbeat.interval.ms: 3000
+        commit.interval.ms: 10000

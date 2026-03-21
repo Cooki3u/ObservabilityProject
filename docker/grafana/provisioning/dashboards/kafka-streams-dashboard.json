@@ -1,0 +1,456 @@
+{
+    "uid":  "kafka-streams-demo",
+    "title":  "Kafka Streams Demo",
+    "timezone":  "browser",
+    "schemaVersion":  38,
+    "version":  2,
+    "refresh":  "10s",
+    "panels":  [
+                   {
+                       "type":  "row",
+                       "title":  "Input Topic",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  0,
+                                       "w":  24,
+                                       "h":  1
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Input vs Output Rate",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "rate(messages_consumed_total[1m])",
+                                           "legendFormat":  "consumed/s"
+                                       },
+                                       {
+                                           "expr":  "rate(messages_produced_total[1m])",
+                                           "legendFormat":  "produced/s"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  1,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Consumer Group Lag (input-topic)",
+                       "description":  "Total lag for the Streams consumer group",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "sum by (group) (kafka_consumer_group_lag_total{topic=\"input-topic\"})",
+                                           "legendFormat":  "{{group}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  1,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Consumer Lag Change Rate",
+                       "description":  "Positive means lag is growing; negative means catching up",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "sum by (group) (deriv(kafka_consumer_group_lag_total{topic=\"input-topic\"}[5m]))",
+                                           "legendFormat":  "{{group}} lag/s"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  9,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Message Processing Latency (p95)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.95, sum(rate(message_processing_latency_seconds_bucket[5m])) by (le))",
+                                           "legendFormat":  "p95 seconds"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  9,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Message Processing Latency (p99)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "histogram_quantile(0.99, sum(rate(message_processing_latency_seconds_bucket[5m])) by (le))",
+                                           "legendFormat":  "p99 seconds"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  17,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "End-to-End Avg Processing Time",
+                       "description":  "Average processing time derived from the latency timer",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "rate(message_processing_latency_seconds_sum[5m]) / rate(message_processing_latency_seconds_count[5m])",
+                                           "legendFormat":  "avg seconds"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  17,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "row",
+                       "title":  "Kafka Streams",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  25,
+                                       "w":  24,
+                                       "h":  1
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Kafka Streams Throughput",
+                       "description":  "Kafka Streams process rate derived from process_total counter",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(rate(kafka_stream_thread_process_total[1m]), \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  26,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Streams Poll Rate",
+                       "description":  "Average per-second number of poll calls",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_poll_rate, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  26,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Streams Process Ratio",
+                       "description":  "Fraction of time spent processing active tasks",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_process_ratio, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  34,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Blocked Time Rate",
+                       "description":  "Time blocked on Kafka (seconds/second)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(rate(kafka_stream_thread_blocked_time_ns_total[1m]) / 1e9, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  34,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "JVM Memory Used",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "sum by (area) (jvm_memory_used_bytes)",
+                                           "legendFormat":  "{{area}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  42,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "stat",
+                       "title":  "Alive Stream Threads",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "sum(kafka_stream_alive_stream_threads)",
+                                           "legendFormat":  "alive threads"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  42,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "row",
+                       "title":  "Rebalance \u0026 Poll Health",
+                       "collapsed":  false,
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  50,
+                                       "w":  24,
+                                       "h":  1
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Poll Records Avg",
+                       "description":  "Average records polled per iteration",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_poll_records_avg, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  51,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Poll Records Max",
+                       "description":  "Max records polled per iteration",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_poll_records_max, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  51,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Process Records Avg",
+                       "description":  "Average records processed per iteration",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_process_records_avg, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  59,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Process Records Max",
+                       "description":  "Max records processed per iteration",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_process_records_max, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  59,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Poll Latency Max",
+                       "description":  "Max poll latency (ms)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_poll_latency_max, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  67,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Process Latency Max",
+                       "description":  "Max process latency (ms)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_process_latency_max, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  67,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Commit Latency Max",
+                       "description":  "Max commit latency (ms)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_commit_latency_max, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  75,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Commit Rate",
+                       "description":  "Commits per second",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(kafka_stream_thread_commit_rate, \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  75,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Tasks Created Rate",
+                       "description":  "Task creations per second (rebalance signal)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(rate(kafka_stream_thread_task_created_total[5m]), \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  83,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Tasks Closed Rate",
+                       "description":  "Task closes per second (rebalance signal)",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "label_replace(rate(kafka_stream_thread_task_closed_total[5m]), \"thread_short\", \"$1\", \"thread_id\", \".*(StreamThread-[0-9]+)$\")",
+                                           "legendFormat":  "{{thread_short}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  12,
+                                       "y":  83,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   },
+                   {
+                       "type":  "timeseries",
+                       "title":  "Failed Stream Threads",
+                       "description":  "Increase in failed stream threads",
+                       "datasource":  "Prometheus",
+                       "targets":  [
+                                       {
+                                           "expr":  "increase(kafka_stream_failed_stream_threads_total[5m])",
+                                           "legendFormat":  "{{client_id}}"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "x":  0,
+                                       "y":  91,
+                                       "w":  12,
+                                       "h":  8
+                                   }
+                   }
+               ]
+}

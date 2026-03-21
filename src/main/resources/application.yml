@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: kafka-streams-app
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      auto-create: true
+    streams:
+      application-id: kafka-streams-demo
+      state-dir: /tmp/kafka-streams
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+        default.deserialization.exception.handler: org.apache.kafka.streams.errors.LogAndContinueExceptionHandler
+        commit.interval.ms: 1000
+        processing.guarantee: at_least_once
+        metrics.recording.level: DEBUG
+# `src/main/resources/application.yml`
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+  metrics:
+    distribution:
+      percentiles-histogram:
+        message_processing_latency: true
+
+app:
+  lag:
+    enabled: true
+    topic: input-topic
+    refresh-ms: 5000
